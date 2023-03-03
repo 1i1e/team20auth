@@ -6,3 +6,6 @@ tim's tutorial covers how to use flask to build a blog
 
 +++NEW+++
 this dir was made on 28th of february to morph protoFebruary and prototype713
+
++++ 03/02/23 this version integrates jessicas remote mysql db to
+ allow login functionality

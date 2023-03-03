@@ -1,23 +1,29 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from . import db
-from .models import User
+from .models import Users,Auths
 import re #regex module
 from flask_login import login_user,logout_user,login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
 
 
 
 auth = Blueprint("auth", __name__)
 
+@auth.route("/") ## moved from views.home to here
+## so that user sees login page first, forced to login in order to access homepage
 @auth.route("/login", methods=['GET','POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get("email")
         password = request.form.get("password")
+        usrnam = request.form.get("usrnam") ##debug
         
-        user = User.query.filter_by(email=email).first()
+        user = Users.query.filter_by(email=email).first()
+        print(f"query result of user's stored email: {user} ")
+        authUser = Auths.query.filter_by(username=usrnam).first()
         if user:
-            if check_password_hash(user.password, password):
+            if check_password_hash(authUser.hashpassword, password):
                 flash("Logged in successfully!", category='success')
                 login_user(user, remember=True) #store user in session upon sign-in
                 return redirect(url_for('views.home'))
@@ -27,23 +33,26 @@ def login():
             flash('User does not exist. Create an account',category='error')
 
 
-    return render_template("login.html")
+    return render_template("login.html") #if get request and not post
 
 ### define read and write permissions to our server
 @auth.route("/sign-up", methods=['GET','POST'])
 def sign_up():
     #regex = re.compile(r'(^[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+$)')
+    rand_num = random.randint(1,19)
     
     if request.method == 'POST':
         email = request.form.get("email")
-        username = request.form.get("username")
+        username = request.form.get("usrnam") ##debug
+        fname = request.form.get("fname")
+        lname = request.form.get("lname") ##debug
         print(f"the username: {username} was sent in a POST req")
 
         pw1 = request.form.get("pw1")
         pw2 = request.form.get("pw2")
 
-        email_exists = User.query.filter_by(email=email).first()
-        username_exists = User.query.filter_by(username=username).first()
+        email_exists = Users.query.filter_by(email=email).first()
+        username_exists = Users.query.filter_by(userName=username).first() 
         if email_exists:
             flash('Email is already taken.', category='error')
         elif username_exists:
@@ -59,9 +68,10 @@ def sign_up():
         # elif not re.match(regex,email):
         #     flash('Invalid email', category='error')
         else:
-            new_user = User(email=email,username=username,
-                            password=generate_password_hash(pw1, method='sha256'))
+            new_user = Users(userID=rand_num,firstName=fname,lastName=lname,email=email,userName=username)
+            new_authUser = Auths(authID=rand_num,username=username,hashpassword=generate_password_hash(pw1, method='sha256'))
             db.session.add(new_user)
+            db.session.add(new_authUser)
             db.session.commit()
             login_user(new_user, remember=True)
             flash('User account created!',category='success')
@@ -74,6 +84,6 @@ def sign_up():
 @login_required ##need to be logged in in order to log out
 def logout():
     logout_user()
-    return redirect(url_for("views.home"))##redirect user to URL for views.home
+    return redirect(url_for("auth.login"))##redirect user to login page
 
 
