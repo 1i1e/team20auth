@@ -21,7 +21,7 @@ def create_app():
 
     app.config['SECRET_KEY'] = "team20"
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://admin:Fang2023@database-capstone.czyt3syhmabj.us-east-1.rds.amazonaws.com:3306/testing'
+    app.config['SQLALCHEMY_DATABASE_URI'] = f'insert_mysql_server_here'
 
     db.init_app(app)   ##initialize web app with sqlalchemy extension 
 
